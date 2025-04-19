@@ -27,7 +27,7 @@ import "./components/SearchResultsWidget.css"; // **** IMPORT NEW CSS ****
 // import './components/Visualizer.module.css'; // Already imported via AiVisualizer
 
 // Constants
-const SERVER_URL = "http://localhost:5000"; // Adjust if your server runs elsewhere
+const SERVER_URL = "https://ada-server-a67e.onrender.com"; // Adjust if your server runs elsewhere
 
 function App() {
   console.log("--- App component rendered ---");
