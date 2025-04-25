@@ -23,7 +23,7 @@ function ChatBox({ messages }) {
     }, [messages]);
 
     return (
-        <div className="chatbox" ref={chatboxRef}>
+        <div className="chatbox md:w-[80%] h-screen" ref={chatboxRef}>
             {/* Map over messages and render the Message component for each */}
             {messages.map((msg, index) => (
                 <Message

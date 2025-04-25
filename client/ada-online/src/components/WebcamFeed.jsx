@@ -8,16 +8,20 @@ function WebcamFeed({ isVisible, onClose, socket }) {
   const streamRef = useRef(null);
   const canvasRef = useRef(null);
   const intervalRef = useRef(null);
+  const containerRef = useRef(null);
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [switchView, setSwitchView] = useState(false);
+  const [switchView, setSwitchView] = useState(true);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Function to capture and send frame
   const captureAndSendFrame = useCallback(() => {
     if (
       !videoRef.current ||
       !canvasRef.current ||
-      !socket?.current || 
+      !socket?.current ||
       videoRef.current.readyState < videoRef.current.HAVE_METADATA
     ) {
       return;
@@ -58,7 +62,7 @@ function WebcamFeed({ isVisible, onClose, socket }) {
       }
       console.log("Webcam stream stopped.");
     }
-    
+
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -70,7 +74,7 @@ function WebcamFeed({ isVisible, onClose, socket }) {
   const startStream = useCallback(async () => {
     // Stop any existing stream first
     stopStream();
-    
+
     setHasError(false);
     setErrorMessage("");
     console.log(`Attempting to start ${switchView ? "webcam" : "screen sharing"}...`);
@@ -82,18 +86,18 @@ function WebcamFeed({ isVisible, onClose, socket }) {
       } else {
         stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: false });
       }
-      
+
       streamRef.current = stream;
-      
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        
+
         // Wait for video metadata to load before playing and starting interval
         videoRef.current.onloadedmetadata = async () => {
           try {
             await videoRef.current.play();
             console.log(`${switchView ? "Webcam" : "Screen sharing"} stream started and playing.`);
-            
+
             // Start interval after video is playing
             if (intervalRef.current) clearInterval(intervalRef.current);
             intervalRef.current = setInterval(captureAndSendFrame, 1000);
@@ -102,7 +106,7 @@ function WebcamFeed({ isVisible, onClose, socket }) {
             console.error("Error playing video stream:", playError);
             setHasError(true);
             setErrorMessage("Could not play video stream.");
-            
+
             // Cleanup
             stopStream();
           }
@@ -115,7 +119,7 @@ function WebcamFeed({ isVisible, onClose, socket }) {
     } catch (err) {
       console.error(`Error accessing ${switchView ? "webcam" : "screen sharing"}:`, err);
       setHasError(true);
-      
+
       if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
         setErrorMessage(`${switchView ? "Webcam" : "Screen sharing"} permission denied...`);
       } else if (err.name === "NotFoundError" || err.name === "DevicesNotFoundError") {
@@ -123,7 +127,7 @@ function WebcamFeed({ isVisible, onClose, socket }) {
       } else {
         setErrorMessage(`Could not access ${switchView ? "webcam" : "screen"}. Error: ${err.message}`);
       }
-      
+
       // Ensure cleanup on error
       stopStream();
     }
@@ -147,17 +151,90 @@ function WebcamFeed({ isVisible, onClose, socket }) {
     return stopStream;
   }, [isVisible, startStream, stopStream, switchView]);
 
+  // Dragging functionality
+  const handleMouseDown = (e) => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+      setIsDragging(true);
+    }
+  };
+
+  const handleMouseMove = useCallback((e) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - dragOffset.x,
+        y: e.clientY - dragOffset.y
+      });
+    }
+  }, [isDragging, dragOffset]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Add and remove event listeners for drag
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
   if (!isVisible) {
     return null;
   }
 
+  // Calculate position for the component
+  const containerStyle = {
+    position: 'fixed',
+    left: `${position.x}px`,
+    top: `${position.y}px`,
+    width: '360px',
+    height: '280px',
+    cursor: isDragging ? 'grabbing' : 'grab',
+    zIndex: 1000
+  };
+
   return (
-    <div className="md:absolute right-0 bottom-4 w-full  max-w-lg mx-auto rounded-lg overflow-hidden bg-gray-900 shadow-lg">
+    <div
+      ref={containerRef}
+      style={containerStyle}
+      className="rounded-lg overflow-hidden bg-gray-900 shadow-lg pb-4"
+    >
+      {/* Drag handle */}
+      <div
+        className="h-6 bg-gray-800 flex justify-between items-center px-2 cursor-grab"
+        onMouseDown={handleMouseDown}
+      >
+        <div className="text-white text-xs">
+          {switchView ? "Webcam" : "Screen Share"}
+        </div>
+        <button
+          onClick={onClose}
+          className="text-white hover:text-gray-300"
+          aria-label="Close Webcam Feed"
+        >
+          ×
+        </button>
+      </div>
+
       {/* Hidden canvas for processing */}
       <canvas ref={canvasRef} className="hidden"></canvas>
 
       {hasError ? (
-        <div className="p-6 text-center bg-red-50 rounded-lg">
+        <div className="p-6 text-center bg-red-50 h-full">
           <p className="text-red-600 mb-4">{errorMessage}</p>
           <button
             onClick={onClose}
@@ -167,32 +244,25 @@ function WebcamFeed({ isVisible, onClose, socket }) {
           </button>
         </div>
       ) : (
-        <>
+        <div className="relative h-full">
           <video
             ref={videoRef}
             autoPlay
             playsInline
             muted
-            className="w-full h-auto object-cover"
+            className="w-full h-full object-cover"
+            style={{ objectFit: 'cover' }}
           ></video>
 
           <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-3 px-4">
-            <button 
+            <button
               className="px-4 py-2 bg-gray-800 bg-opacity-70 text-white rounded-md hover:bg-opacity-90 transition-colors"
               onClick={handleSwitchView}
             >
               {switchView ? "Screen Share" : "Webcam"}
             </button>
-
-            <button
-              onClick={onClose}
-              className="px-3 py-2 bg-gray-800 bg-opacity-70 text-white rounded-md hover:bg-opacity-90 transition-colors"
-              aria-label="Close Webcam Feed"
-            >
-              ×
-            </button>
           </div>
-        </>
+        </div>
       )}
     </div>
   );

@@ -12,7 +12,7 @@
   --muted-text-light: #6c757d;
 
   /* Define color variables for dark mode */
-  --background-dark: #1a1d21; /* Very dark grey */
+  --background-dark: #1A1D21;
   --text-dark: #e9ecef; /* Light grey text */
   --card-background-dark: #2c3034; /* Darker card */
   --accent-dark: #0d6efd; /* Slightly brighter blue */
@@ -40,7 +40,7 @@ body {
   display: flex;
   justify-content: center;
   min-height: 100vh;
-  padding: 20px; /* Padding around the container */
+  /* padding: 20px;  */
   box-sizing: border-box; /* Include padding in width/height */
 
   /* Apply variables */

@@ -72,7 +72,7 @@ function InputArea({
 
 
     return (
-       <div className="flex flex-wrap gap-2 mt-4 p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
+       <div className="flex flex-wrap gap-2 mt-4 p-2 rounded-lg ">
     <input
         type="text"
         id="message-input"

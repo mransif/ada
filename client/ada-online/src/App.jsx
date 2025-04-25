@@ -27,7 +27,7 @@ import "./components/SearchResultsWidget.css"; // **** IMPORT NEW CSS ****
 // import './components/Visualizer.module.css'; // Already imported via AiVisualizer
 
 // Constants
-const SERVER_URL = "https://ada-server-a67e.onrender.com"; // Adjust if your server runs elsewhere
+const SERVER_URL = "http://localhost:5000"; // Adjust if your server runs elsewhere
 
 function App() {
   console.log("--- App component rendered ---");
@@ -69,8 +69,7 @@ function App() {
   // --- Footer Time ---
   const getCurrentTime = () => {
     return new Date().toLocaleString("en-US", {
-      // Note: Changed timeZone to reflect your actual location based on context
-      timeZone: "America/New_York", // e.g., 'America/New_York' for Smyrna, GA
+      timeZone: "Asia/Kolkata",
       hour: "numeric",
       minute: "numeric",
       second: "numeric",
@@ -157,7 +156,7 @@ function App() {
 
     isPlaying.current = true;
     setVisualizerStatus(VISUALIZER_STATUS.SPEAKING);
-    setStatusText("Ada is speaking...");
+    setStatusText("F.R.I.D.A.Y is speaking...");
     const base64Chunk = audioQueue.current.shift();
 
     try {
@@ -368,7 +367,7 @@ function App() {
       );
       clearTimeout(restartTimer.current); // Stop any pending restarts
       setIsListening(false); // Update listening state
-      // Set visualizer to idle only if Ada isn't speaking
+      // Set visualizer to idle only if F.R.I.D.A.Y isn't speaking
       if (!isPlaying.current) {
         setVisualizerStatus(VISUALIZER_STATUS.IDLE);
       }
@@ -398,7 +397,7 @@ function App() {
     const handleEnd = () => {
       console.log("DEBUG: recognition.onend fired.");
       setIsListening(false); // No longer listening
-      // Set visualizer to idle only if Ada isn't speaking
+      // Set visualizer to idle only if F.R.I.D.A.Y isn't speaking
       if (!isPlaying.current) {
         setVisualizerStatus(VISUALIZER_STATUS.IDLE);
       }
@@ -420,13 +419,13 @@ function App() {
           ...prev,
           { sender: "user", text: processedTranscript },
         ]);
-        adaMessageIndex.current = -1; // Reset index for next Ada message
+        adaMessageIndex.current = -1; // Reset index for next F.R.I.D.A.Y message
         if (socket.current?.connected) {
           socket.current.emit("send_transcribed_text", {
             transcript: processedTranscript,
           });
         }
-        setStatusText("Waiting for Ada..."); // Update status
+        setStatusText("Waiting for F.R.I.D.A.Y..."); // Update status
       } else {
         // Update status if no transcript sent (e.g., muted, stopped, empty)
         if (isMutedRef.current) setStatusText("Muted.");
@@ -563,16 +562,16 @@ function App() {
       if (!data || !data.text) return; // Ignore empty chunks
       setMessages((prevMessages) => {
         const newMessages = [...prevMessages];
-        // Check if the last message is from Ada and append, or add new message
+        // Check if the last message is from F.R.I.D.A.Y and append, or add new message
         if (
           adaMessageIndex.current !== -1 && // Ensure index is valid
           adaMessageIndex.current < newMessages.length && // Bounds check
-          newMessages[adaMessageIndex.current]?.sender === "ada"
+          newMessages[adaMessageIndex.current]?.sender === "F.R.I.D.A.Y"
         ) {
           newMessages[adaMessageIndex.current].text += data.text;
         } else {
           // Add a new message entry for Ada
-          newMessages.push({ sender: "ada", text: data.text });
+          newMessages.push({ sender: "F.R.I.D.A.Y", text: data.text });
           adaMessageIndex.current = newMessages.length - 1; // Update index
         }
         return newMessages;
@@ -788,7 +787,7 @@ function App() {
 
         // Update messages UI
         setMessages((prev) => [...prev, { sender: "user", text: text }]);
-        adaMessageIndex.current = -1; // Reset Ada message index
+        adaMessageIndex.current = -1; // Reset F.R.I.D.A.Y message index
 
         // Emit text message to backend
         socket.current.emit("send_text_message", { message: text });
@@ -862,11 +861,17 @@ function App() {
 
   // --- Render JSX ---
   return (
-    <div className="container mx-auto p-4 flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
-      <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-white">A.D.A</h1>
-      <AiVisualizer status={visualizerStatus} />
+    <div className="h-screen w-screen mx-auto p-4 flex flex-col min-h-screen ">
+
+      <div className="flex">
+        <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">F.R.I.D.A.Y</h1>
+        <AiVisualizer status={visualizerStatus} />
+      </div>
+
       <StatusDisplay status={statusText} />
+
       <ChatBox messages={messages} />
+
       <InputArea
         onSendText={handleSendText}
         isMuted={isMuted}
@@ -910,9 +915,8 @@ function App() {
       {/* **** END SEARCH RESULTS WIDGET RENDER **** */}
 
       <footer className="mt-auto pt-4 border-t border-gray-200 dark:border-gray-700">
-    <p className="text-sm text-gray-600 dark:text-gray-400">Location:</p>
-    <p className="text-sm text-gray-600 dark:text-gray-400">Current Time: {currentTime}</p>
-  </footer>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Current Time: {currentTime}</p>
+      </footer>
     </div>
   );
 }
