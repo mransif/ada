@@ -864,7 +864,7 @@ function App() {
     <div className="h-screen w-screen mx-auto p-4 flex flex-col min-h-screen ">
 
       <div className="flex">
-        <h1 className="text-2xl font-bold mb-4 text-gray-800 dark:text-gray-200">F.R.I.D.A.Y</h1>
+        <h1 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-200">F.R.I.D.A.Y</h1>
         <AiVisualizer status={visualizerStatus} />
       </div>
 

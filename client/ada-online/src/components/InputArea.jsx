@@ -50,21 +50,21 @@ function InputArea({
     };
 
     // Determine Mute button text and appearance
-     let muteButtonText = 'Mic N/A';
-     let muteButtonClass = 'mute-button';
-     let isMuteButtonDisabled = true;
+    let muteButtonText = 'Mic N/A';
+    let muteButtonClass = 'mute-button';
+    let isMuteButtonDisabled = true;
 
-     if (micSupported) {
-         isMuteButtonDisabled = false;
-         if (isMuted) {
-             muteButtonText = 'Unmute';
-             muteButtonClass += ' muted'; // Add 'muted' class for styling
-         } else {
-              // You could optionally show "Listening..." if isListening is true
-              // muteButtonText = isListening ? 'Listening...' : 'Mute';
-              muteButtonText = 'Mute'; // Keep it simple like original for now
-         }
-     }
+    if (micSupported) {
+        isMuteButtonDisabled = false;
+        if (isMuted) {
+            muteButtonText = 'Unmute';
+            muteButtonClass += ' muted'; // Add 'muted' class for styling
+        } else {
+            // You could optionally show "Listening..." if isListening is true
+            // muteButtonText = isListening ? 'Listening...' : 'Mute';
+            muteButtonText = 'Mute'; // Keep it simple like original for now
+        }
+    }
 
     // **** DETERMINE WEBCAM BUTTON TEXT/STYLE ****
     const webcamButtonText = isWebcamVisible ? 'Hide Cam' : 'Show Cam';
@@ -72,49 +72,127 @@ function InputArea({
 
 
     return (
-       <div className="flex flex-wrap gap-2 mt-4 p-2 rounded-lg ">
-    <input
-        type="text"
-        id="message-input"
-        className="flex-1 min-w-0 px-4 py-2 text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        placeholder="Type your message or use the mic..."
-        value={inputValue}
-        onChange={handleInputChange}
-        onKeyDown={handleKeyPress}
-        aria-label="Message Input"
-    />
-    <button
-        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md transition-colors"
-        onClick={handleSend}
-        aria-label="Send Message"
-    >
-        Send
-    </button>
-    <button
-        className={`px-4 py-2 rounded-full ${isMuteButtonDisabled ? 'bg-gray-400 cursor-not-allowed ' : 'bg-gray-600 hover:bg-gray-700'} text-white font-medium rounded-md transition-colors`}
-        onClick={onToggleMute}
-        disabled={isMuteButtonDisabled}
-        aria-label={muteButtonText}
-    >
-        {isMuted ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
-            </svg>
-        ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            </svg>
-        )}
-    </button>
-    <button
-        className={`px-4 py-2 ${isWebcamVisible  ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'} text-white font-medium rounded-md transition-colors`}
-        onClick={onToggleWebcam}
-        aria-label={webcamButtonText}
-    >
-        {webcamButtonText}
-    </button>
-</div>
+        <div className="flex flex-wrap gap-2 my-4 p-1 rounded-full mx-auto bg-slate-30 ">
+
+            <div className="flex gap-2 rounded-full border-[1px] border-[#2D3033] p-3 ">
+                <input
+                    type="text"
+                    id="message-input"
+                    className="flex-1 min-w-[400px] px-4 py-2 text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+                    placeholder="Type your message or use the mic..."
+                    value={inputValue}
+                    onChange={handleInputChange}
+                    onKeyDown={handleKeyPress}
+                    aria-label="Message Input"
+                />
+                <button
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-full transition-colors duration-200"
+                    onClick={handleSend}
+                    aria-label="Send Message"
+                >
+                    Send
+                </button>
+            </div>
+
+            <div className='flex gap-2 rounded-full  border-[1px] border-[#2D3033] p-3'>
+
+                <button
+                    className={`px-4 py-2 rounded-full text-white font-medium transition-colors duration-200 ${isMuteButtonDisabled
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : isMuted
+                            ? 'bg-red-600 hover:bg-red-600'
+                            : 'bg-blue-500 hover:bg-blue-600'
+                        }`}
+                    onClick={onToggleMute}
+                    disabled={isMuteButtonDisabled}
+                    aria-label={muteButtonText}
+                >
+                    {isMuted ? (
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                            />
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 3l18 18"
+                            />
+                        </svg>
+                    ) : (
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                            />
+                        </svg>
+                    )}
+                </button>
+                <button
+                    className={`px-4 py-2 text-white font-medium rounded-full transition-colors duration-200 ${isWebcamVisible
+                        ? 'bg-red-600 hover:bg-red-700'
+                        : 'bg-blue-500 hover:bg-blue-600'
+                        }`}
+                    onClick={onToggleWebcam}
+                    aria-label={webcamButtonText}
+                >
+                    {isWebcamVisible ? (
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 3l18 18"
+                            />
+                        </svg>
+                    ) : (
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
+                        </svg>
+                    )}
+                </button>
+            </div>
+        </div>
     );
 }
 
