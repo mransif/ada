@@ -1,21 +1,25 @@
-# app.py (Revised for Client-Side STT, CORS, Logging, AND VIDEO FRAMES)
 import os
 from dotenv import load_dotenv
 import asyncio
 import threading
-from flask import Flask, render_template, request # Make sure request is imported
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 
+# Load environment variables from .env file
 load_dotenv()
-from ADA_Online import ADA # Make sure filename matches ADA_Online.py
+from ADA_Online import ADA  # Ensure this file name is correct
 
+# Initialize Flask app
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'a_default_fallback_secret_key!')
 
+# Get dynamic port from environment variable (for Railway)
+port = int(os.environ.get('PORT', 5000))  # Railway provides the PORT environment variable
 REACT_APP_PORT = os.getenv('REACT_APP_PORT', '5173')
 REACT_APP_ORIGIN = f"http://localhost:{REACT_APP_PORT}"
 REACT_APP_ORIGIN_IP = f"http://127.0.0.1:{REACT_APP_PORT}"
 
+# Initialize SocketIO
 socketio = SocketIO(
     app,
     async_mode='threading',
@@ -94,7 +98,6 @@ def handle_connect():
         emit('status', {'message': 'Connected to ADA Assistant'}, room=client_sid)
     print(f"--- handle_connect finished for SID: {client_sid} ---\n")
 
-
 @socketio.on('disconnect')
 def handle_disconnect():
     """ Handles client disconnections """
@@ -129,7 +132,6 @@ def handle_disconnect():
 
     print(f"--- handle_disconnect finished for SID: {client_sid} ---\n")
 
-
 @socketio.on('send_text_message')
 def handle_text_message(data):
     """ Receives text message from client's input box """
@@ -138,7 +140,6 @@ def handle_text_message(data):
     print(f"Received text from {client_sid}: {message}")
     if ada_instance and ada_instance.client_sid == client_sid:
         if ada_loop and ada_loop.is_running():
-            # Process text with end_of_turn=True implicitly handled in process_input -> run_gemini_session
             asyncio.run_coroutine_threadsafe(ada_instance.process_input(message, is_final_turn_input=True), ada_loop)
             print(f"    Text message forwarded to ADA for SID: {client_sid}")
         else:
@@ -148,7 +149,6 @@ def handle_text_message(data):
         print(f"    ADA instance not ready or SID mismatch for text message from {client_sid}.")
         emit('error', {'message': 'Assistant not ready or session mismatch.'}, room=client_sid)
 
-
 @socketio.on('send_transcribed_text')
 def handle_transcribed_text(data):
     """ Receives final transcribed text from client's Web Speech API """
@@ -157,7 +157,6 @@ def handle_transcribed_text(data):
     print(f"Received transcript from {client_sid}: {transcript}")
     if transcript and ada_instance and ada_instance.client_sid == client_sid:
          if ada_loop and ada_loop.is_running():
-            # Process transcript with end_of_turn=True implicitly handled in process_input -> run_gemini_session
             asyncio.run_coroutine_threadsafe(ada_instance.process_input(transcript, is_final_turn_input=True), ada_loop)
             print(f"    Transcript forwarded to ADA for SID: {client_sid}")
          else:
@@ -168,17 +167,16 @@ def handle_transcribed_text(data):
     else:
          print(f"    ADA instance not ready or SID mismatch for transcript from {client_sid}.")
 
-
-# **** ADD VIDEO FRAME HANDLER ****
+# ADD VIDEO FRAME HANDLER
 @socketio.on('send_video_frame')
 def handle_video_frame(data):
     """ Receives base64 video frame data from client """
     client_sid = request.sid
-    frame_data_url = data.get('frame') # Expecting data URL like 'data:image/jpeg;base64,xxxxx'
+    frame_data_url = data.get('frame')  # Expecting data URL like 'data:image/jpeg;base64,xxxxx'
 
     if frame_data_url and ada_instance and ada_instance.client_sid == client_sid:
         if ada_loop and ada_loop.is_running():
-            print(f"Received video frame from {client_sid}, forwarding...") # Optional: very verbose
+            print(f"Received video frame from {client_sid}, forwarding...")
             asyncio.run_coroutine_threadsafe(ada_instance.process_video_frame(frame_data_url), ada_loop)
         pass
 
@@ -189,7 +187,6 @@ def handle_video_feed_stopped():
     print(f"Received video_feed_stopped signal from {client_sid}.")
     if ada_instance and ada_instance.client_sid == client_sid:
         if ada_loop and ada_loop.is_running():
-            # Call a method on ADA instance to clear its video queue
             asyncio.run_coroutine_threadsafe(ada_instance.clear_video_queue(), ada_loop)
             print(f"    Video frame queue clearing requested for SID: {client_sid}")
         else:
@@ -197,15 +194,16 @@ def handle_video_feed_stopped():
     else:
         print(f"    ADA instance not ready or SID mismatch for video_feed_stopped from {client_sid}.")
 
+# Route for checking server status
 @app.route('/status')
 def server_status():
     return 'Server Running'
 
-
+# Main entry point
 if __name__ == '__main__':
     print("Starting Flask-SocketIO server...")
     try:
-        socketio.run(app, debug=True, host='0.0.0.0', port=5000, use_reloader=False)
+        socketio.run(app, debug=True, host='0.0.0.0', port=port, use_reloader=False)  # Use dynamic port
     finally:
         print("\nServer shutting down...")
         if ada_instance:
