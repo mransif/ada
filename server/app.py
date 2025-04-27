@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'a_default_fallback_secret_key!')
 
 # Get dynamic port from environment variable (for Railway)
-port = int(os.environ.get('PORT', 5000))  # Railway provides the PORT environment variable
+port = int(os.getenv('PORT', 5000))
 REACT_APP_PORT = os.getenv('REACT_APP_PORT', '5173')
 REACT_APP_ORIGIN = f"http://localhost:{REACT_APP_PORT}"
 REACT_APP_ORIGIN_IP = f"http://127.0.0.1:{REACT_APP_PORT}"
@@ -203,7 +203,8 @@ def server_status():
 if __name__ == '__main__':
     print("Starting Flask-SocketIO server...")
     try:
-        socketio.run(app, debug=True, host='0.0.0.0', port=port, use_reloader=False)  # Use dynamic port
+        print(f"Starting server on port {port}...")
+        socketio.run(app, debug=False, host='0.0.0.0', port=port, use_reloader=False)
     finally:
         print("\nServer shutting down...")
         if ada_instance:
