@@ -197,6 +197,10 @@ def handle_video_feed_stopped():
     else:
         print(f"    ADA instance not ready or SID mismatch for video_feed_stopped from {client_sid}.")
 
+@app.route('/status')
+def server_status():
+    return 'Server Running'
+
 
 if __name__ == '__main__':
     print("Starting Flask-SocketIO server...")
